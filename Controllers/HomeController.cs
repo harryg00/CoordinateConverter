@@ -1,6 +1,9 @@
-using CoordinateConverter.Models;
+﻿using CoordinateConverter.Models;
 using CoordinateConverter.Services;
 using Microsoft.AspNetCore.Mvc;
+using NetTopologySuite.Geometries;
+using ProjNet.CoordinateSystems;
+using ProjNet.CoordinateSystems.Transformations;
 using System.Diagnostics;
 
 namespace CoordinateConverter.Controllers
@@ -8,34 +11,55 @@ namespace CoordinateConverter.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly IWebHostEnvironment _env;
         private readonly IGpkgHelper _gpkgHelper;
+        private readonly IShapeFileService _shapeService;
+        private readonly GeometryFactory _geometryFactory;
+        private readonly ICoordinateTransformer _transformer;
 
-        public HomeController(ILogger<HomeController> logger, IWebHostEnvironment env, IGpkgHelper gpkgHelper)
+        public HomeController(
+            ILogger<HomeController> logger,
+            IGpkgHelper gpkgHelper,
+            IShapeFileService shapeService,
+            GeometryFactory geometryFactory,
+            ICoordinateTransformer transformer)
         {
             _logger = logger;
-            _env = env;
             _gpkgHelper = gpkgHelper;
+            _shapeService = shapeService;
+            _geometryFactory = geometryFactory;
+            _transformer = transformer;
         }
 
         public IActionResult Index()
         {
-            string test = Closest("52.263447", "-0.952382").Result;
-            Console.WriteLine(test);
+            var wgsPoint = _geometryFactory.CreatePoint(
+                new Coordinate(-1.144000, 52.947444)); // lon, lat
+
+            var pointBng = _transformer.ToBngPoint(wgsPoint, _geometryFactory);
+
+            ShapeFeature? closestCentreline = null;
+            double closestDistanceMeters = double.MaxValue;
+
+            foreach (var feature in _shapeService.CentreLineFeatures)
+            {
+                if (feature.Geometry == null) continue;
+
+                double distance = feature.Geometry.Distance(pointBng);
+                if (distance < closestDistanceMeters)
+                {
+                    closestDistanceMeters = distance;
+                    closestCentreline = feature;
+                }
+            }
+
+            Console.WriteLine($"Closest distance: {closestDistanceMeters:F2} meters");
+            Console.WriteLine($"ELR: {closestCentreline?.Attributes.GetValueOrDefault("ELR", "N/A")}");
+
+            ViewBag.ClosestDistanceMeters = closestDistanceMeters;
+            ViewBag.ClosestELR = closestCentreline?.Attributes.GetValueOrDefault("ELR", "None");
+
             return View();
         }
-
-        [HttpGet]
-        public Task<string> Closest([FromBody] string latitude, [FromBody] string longitude)
-        {
-            double lat = Double.Parse(latitude);
-            double lon = Double.Parse(longitude);
-
-            var (closestLine, distanceMeters) = _gpkgHelper.FindClosest(lat, lon);
-
-            return Task.FromResult($"Closest line feature ID: {closestLine.Attributes["ELR"]}, Distance: {distanceMeters} meters");
-        }
-
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using NetTopologySuite.Geometries;
-using static GpkgHelper;
+﻿using static GpkgHelper;
 
 namespace CoordinateConverter.Services
 {
