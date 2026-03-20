@@ -1,7 +1,6 @@
 using CoordinateConverter.Services;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
-using ProjNet.CoordinateSystems.Transformations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +11,6 @@ builder.Services.AddSingleton<GeometryFactory>(
     NtsGeometryServices.Instance.CreateGeometryFactory(srid: 27700));
 
 builder.Services.AddSingleton<IShapeFileService, ShapeFileService>();
-builder.Services.AddSingleton<IGpkgHelper, GpkgHelper>();
 builder.Services.AddSingleton<ICoordinateTransformer, CoordinateTransformer>();
 
 var app = builder.Build();

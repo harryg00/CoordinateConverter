@@ -1,6 +1,5 @@
 ﻿using CoordinateConverter.Models;
 using CoordinateConverter.Services;
-using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Esri;
 using ProjNet.CoordinateSystems;
@@ -38,7 +37,6 @@ public class ShapeFileService : IShapeFileService
             throw new FileNotFoundException($"Shapefile not found: {shpPath}");
         }
 
-        // This reads ALL features into memory as IFeature objects
         var features = Shapefile.ReadAllFeatures(shpPath);
 
         foreach (var f in features)
@@ -52,13 +50,11 @@ public class ShapeFileService : IShapeFileService
                 GeometryType = geometry.GeometryType
             };
 
-            // Flatten coordinates (as you did before)
             foreach (var coord in geometry.Coordinates)
             {
                 feature.Coordinates.Add((coord.X, coord.Y));
             }
 
-            // Copy attributes (IDictionary<string, object?> style)
             foreach (string attrName in f.Attributes.GetNames())
             {
                 object? value = f.Attributes[attrName];
@@ -78,7 +74,6 @@ public class ShapeFileService : IShapeFileService
         var wgs84 = GeographicCoordinateSystem.WGS84;
 
         // OSGB36 / British National Grid (EPSG:27700)
-        // You can parse from your shapefile's .prj file, or hard-code the standard WKT
         string bngWkt = @"PROJCS[""OSGB36 / British National Grid"",
         GEOGCS[""OSGB36"",
             DATUM[""Ordnance Survey of Great Britain 1936"",
