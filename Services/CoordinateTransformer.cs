@@ -1,4 +1,6 @@
-﻿using NetTopologySuite.Geometries;
+﻿using GeoUK.Ellipsoids;
+using GeoUK.Projections;
+using NetTopologySuite.Geometries;
 using ProjNet.CoordinateSystems;
 using ProjNet.CoordinateSystems.Transformations;
 
@@ -55,6 +57,14 @@ namespace CoordinateConverter.Services
             var pt = gf.CreatePoint(new Coordinate(easting, northing));
             pt.SRID = 27700;
             return pt;
+        }
+
+        public (double Latitude, double Longitude) ConvertToLatLong(Models.EastingNorthing eastingNorthing)
+        {
+            var cartesian = GeoUK.Convert.ToCartesian(new Airy1830(), new BritishNationalGrid(), new GeoUK.Coordinates.EastingNorthing(eastingNorthing.Easting, eastingNorthing.Northing));
+            var wgsCartesian = GeoUK.Transform.Osgb36ToEtrs89(cartesian);
+            GeoUK.Coordinates.LatitudeLongitude latLon = GeoUK.Convert.ToLatitudeLongitude(new Wgs84(), wgsCartesian);
+            return (latLon.Latitude, latLon.Longitude);
         }
     }
 }

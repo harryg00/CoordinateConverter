@@ -4,6 +4,7 @@ using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Esri;
 using ProjNet.CoordinateSystems;
 using ProjNet.CoordinateSystems.Transformations;
+using ProjNet.IO.CoordinateSystems;
 
 public class ShapeFileService : IShapeFileService
 {
@@ -47,7 +48,8 @@ public class ShapeFileService : IShapeFileService
             var feature = new ShapeFeature
             {
                 Geometry = geometry,
-                GeometryType = geometry.GeometryType
+                GeometryType = geometry.GeometryType,
+                CRS = GetCrsFromPrj(shpPath)
             };
 
             foreach (var coord in geometry.Coordinates)
@@ -64,6 +66,21 @@ public class ShapeFileService : IShapeFileService
 
             targetList.Add(feature);
         }
+    }
+
+    public static (string crsName, string wkt) GetCrsFromPrj(string shpPath)
+    {
+        string prjPath = Path.ChangeExtension(shpPath, ".prj");
+
+        if (!File.Exists(prjPath))
+            return ("", "");
+
+        string wkt = File.ReadAllText(prjPath);
+
+        var cs = CoordinateSystemWktReader.Parse(wkt);
+        string crsName = cs?.Name;
+
+        return (crsName, wkt);
     }
 
     static ShapeFileService() 

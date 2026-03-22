@@ -31,13 +31,19 @@ namespace CoordinateConverter.Controllers
             _env = env;
             var trackCodesPath = Path.Combine(_env.ContentRootPath, "Data", "TrackCodes.json");
             var json = JsonSerializer.Deserialize<Dictionary<string, string>>(System.IO.File.ReadAllText(trackCodesPath));
-            _trackCodes = json ?? new Dictionary<string, string>();
+            _trackCodes = json ?? [];
         }
 
         public IActionResult Index()
         {
+            Console.WriteLine(JsonSerializer.Serialize(ClosestCentreline(52.947444, -1.144000)));
+            return View();
+        }
+
+        public CoordinateReturn ClosestCentreline([FromBody] double latitude, [FromBody] double longitude)
+        {
             var wgsPoint = _geometryFactory.CreatePoint(
-                new Coordinate(-1.144000, 52.947444)); // lon, lat
+                new Coordinate(longitude, latitude)); // lon, lat
 
             var pointBng = _transformer.ToBngPoint(wgsPoint, _geometryFactory);
 
@@ -56,33 +62,90 @@ namespace CoordinateConverter.Controllers
                 }
             }
 
-            Console.WriteLine($"Closest distance: {closestDistanceMeters:F2} meters");
-            Console.WriteLine($"ELR: {closestCentreline?.Attributes.GetValueOrDefault("ELR", "N/A")}");
-            // Chain is 22 yards, miles.yards (first 4 decimal places), 1000 yards is a mile, 1 metre is 1.09361 yards
-
+            string ELR = closestCentreline?.Attributes.GetValueOrDefault("ELR", "N/A")?.ToString();
+            // Chain is 22 yards, miles.yards (first 4 decimal places), 1760 yards is a mile, 1 metre is 1.09361 yards
             var closestPoint = DistanceOp.NearestPoints(closestCentreline?.Geometry, pointBng);
             var snappedPoint = new Point(closestPoint[0].X, closestPoint[0].Y);
 
             var indexedLine = new NetTopologySuite.LinearReferencing.LengthIndexedLine(closestCentreline?.Geometry);
             double distanceAlongLine = indexedLine.Project(snappedPoint.Coordinate);
 
-            double start = (double) closestCentreline.Attributes["START"];
+            double start = (double)closestCentreline.Attributes["START"];
 
-            double miles = (int) Math.Truncate(start);
-            double yards = (int)(start - Math.Truncate(start)) * 1000;
+            double miles = (int)Math.Truncate(start);
+            double yards = (int)(start - Math.Truncate(start)) * 1000, yardsLeft = 0.0;
             yards += distanceAlongLine * 1.09361; // Metres to yards conversion
-            double chains = yards / 22; // 1 Chain is 22 yards
-            if (chains % 80 >= 1) // If 80 chains, 1 mile
+            double chains = (int) yards / 22; // 1 Chain is 22 yards
+            double difference = chains / 80;
+            if (difference >= 1) // If 80 chains, 1 mile
             {
-                double difference = (int) chains % 80;
-                double additionalMiles = (int) (chains - difference) / 80;
+                int additionalMiles = (int) Math.Floor(difference);
                 miles += additionalMiles; // Add on the miles
-                chains = difference; // So you are left with the remaining chains
+                chains = chains - (additionalMiles * 80); // So you are left with the remaining chains
             }
+            double extraYards = yards - (chains * 22);
 
-            Console.WriteLine($"Distance along line: {miles} miles, {chains} chains ({chains * 22} yards). Track type: {_trackCodes[closestCentreline.Attributes["TRACK_ID"].ToString()]}");
+            char[] trackCodes = closestCentreline.Attributes["TRACK_ID"].ToString().ToCharArray(); // First 2 digits of track code matter so take those and compare to list of track codes
+            string trackCode = trackCodes[0].ToString() + trackCodes[1].ToString() + "00";
 
-            return View();
+            TrackCentreline centreline = new TrackCentreline
+            {
+                AssetID = closestCentreline.Attributes["ASSET_ID"]?.ToString(),
+                ELR = ELR,
+                TrackType = _trackCodes[trackCode],
+                TrackID = closestCentreline.Attributes["TRACK_ID"]?.ToString(),
+                Owner = closestCentreline.Attributes["OWNER"]?.ToString(),
+                Mileage = (int)miles,
+                Chainage = (int)chains,
+                Yardage = (int)extraYards,
+                TotalYardage = (int)Math.Floor(yards)
+            };
+
+            Original original = new Original
+            {
+                Latitude = latitude,
+                Longitude = longitude,
+            };
+
+            ELRMileChain elrMileChain = new ELRMileChain
+            {
+                ELR = ELR,
+                Mileage = (int) miles,
+                Chainage = (int) chains,
+                Yardage = (int) Math.Floor(extraYards)
+            };
+            (string crsName, string wkt) = closestCentreline.CRS.Value;
+            EastingNorthing eastingNorthing = new EastingNorthing
+            {
+                Easting = snappedPoint.X,
+                Northing = snappedPoint.Y,
+                CoordinateReferenceSystem = wkt
+            };
+
+            (double endLatitude, double endLongitude) = _transformer.ConvertToLatLong(eastingNorthing);
+            LatitudeLongitude latitudeLongitude = new LatitudeLongitude
+            {
+                Latitude = endLatitude,
+                Longitude = endLongitude
+            };
+            eastingNorthing.CoordinateReferenceSystem = crsName;
+
+            LocationReturn locationReturn = new LocationReturn
+            {
+                EastingNorthing = eastingNorthing,
+                LatitudeLongitude = latitudeLongitude,
+                ELRMileChain = elrMileChain
+            };
+
+            CoordinateReturn closestReturn = new CoordinateReturn
+            {
+                DistanceAwayInMetres = closestDistanceMeters,
+                Original = original,
+                LocationReturn = locationReturn,
+                TrackCentrelineInfo = centreline
+            };
+
+            return closestReturn;
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

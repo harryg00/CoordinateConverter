@@ -8,5 +8,6 @@ namespace CoordinateConverter.Models
         public string GeometryType { get; set; }
         public List<(double X, double Y)> Coordinates { get; set; } = new();
         public Dictionary<string, object> Attributes { get; set; } = new();
+        public (string crsName, string wkt)? CRS { get; set; }
     }
 }
