@@ -1,4 +1,8 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+﻿async function findClosest() {
+    const latitude = document.getElementById("latitude").value;
+    const longitude = document.getElementById("longitude").value;
 
-// Write your JavaScript code.
+    const result = await fetch(`https://localhost:7070/Home/ClosestCentreline?latitude=${latitude}&longitude=${longitude}`).then(response => response.text());
+    console.log(result);
+    document.getElementById("result").textContent = result;
+}

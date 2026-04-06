@@ -40,7 +40,8 @@ namespace CoordinateConverter.Controllers
             return View();
         }
 
-        public CoordinateReturn ClosestCentreline([FromBody] double latitude, [FromBody] double longitude)
+        [HttpGet]
+        public CoordinateReturn ClosestCentreline(double latitude, double longitude)
         {
             var wgsPoint = _geometryFactory.CreatePoint(
                 new Coordinate(longitude, latitude)); // lon, lat

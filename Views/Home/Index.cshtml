@@ -1,8 +1,21 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<head>
+    <link rel="stylesheet" href="~/css/index.css" asp-append-version="true" />
+</head>
+
+<div>
+    <h2>Coordinate Converter</h2>
+    <p>Enter coordinates, and have it return the closest track to those coordinates</p>
+    <label for="latitude">Latitude:</label>
+    <input type="text" id="latitude" name="latitude"><br><br>
+    <label for="longitude">Longitude:</label>
+    <input type="text" id="longitude" name="longitude"><br><br>
+    <button id="findClosest" onclick="findClosest()">Find Closest!</button>
+</div>
+
+<div>
+    <p id="result"></p>
 </div>
