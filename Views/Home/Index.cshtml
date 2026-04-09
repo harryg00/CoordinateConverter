@@ -4,6 +4,7 @@
 
 <head>
     <link rel="stylesheet" href="~/css/index.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
 
 <div>
@@ -16,6 +17,37 @@
     <button id="findClosest" onclick="findClosest()">Find Closest!</button>
 </div>
 
-<div>
-    <p id="result"></p>
+<div class="information-block">
+    <div id="originalBlock">
+        <h1>Original:</h1>
+        <hr />
+        <ul>
+            <li>Easting:</li>
+            <li>Northing:</li>
+            <li>Latitude</li>
+            <li>Longitude</li>
+            <li>ELR</li>
+            <li>Mileage</li>
+            <li>Chainage</li>
+            <li>Yardage</li>
+        </ul>
+    </div>
+    <div id="closestMap" style="height: 400px; min-width: 400px;"></div>
+    <div id="returnBlock">
+        <h1>Closest Track:</h1>
+        <hr />
+        <ul>
+            <li>ELR:</li>
+            <li>Miles and Chains:</li>
+            <li>Yards along ELR:</li>
+            <li>Latitude:</li>
+            <li>Longitude:</li>
+            <li>Track Type:</li>
+            <li>Easting / Northing: []</li>
+            <li>Distance from track:</li>
+        </ul>
+    </div>
 </div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="~/js/index.js" asp-append-version="true"></script>

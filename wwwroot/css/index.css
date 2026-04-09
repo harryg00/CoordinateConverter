@@ -1,1 +1,6 @@
-﻿
+﻿.information-block {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    margin-top: 50px;
+}
