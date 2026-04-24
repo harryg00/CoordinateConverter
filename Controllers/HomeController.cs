@@ -36,7 +36,6 @@ namespace CoordinateConverter.Controllers
 
         public IActionResult Index()
         {
-            Console.WriteLine(JsonSerializer.Serialize(ClosestCentreline(52.947444, -1.144000)));
             return View();
         }
 

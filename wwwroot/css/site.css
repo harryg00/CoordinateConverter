@@ -1,5 +1,5 @@
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
@@ -18,5 +18,14 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
+    background: radial-gradient(circle at 80% 20%, rgba(160, 70, 70, 0.12), transparent 45%), linear-gradient(135deg, #a5aaaf, #aeb7c0, #7f8892);
+}
+
+button {
+    background: snow;
+    border-radius: 10px;
+    border: 1px solid black;
+    padding-left: 10px;
+    padding-right: 10px;
 }

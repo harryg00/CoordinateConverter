@@ -7,14 +7,50 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
 
-<div>
+<div class="top-section">
     <h2>Coordinate Converter</h2>
     <p>Enter coordinates, and have it return the closest track to those coordinates</p>
-    <label for="latitude">Latitude:</label>
-    <input type="text" id="latitude" name="latitude"><br><br>
-    <label for="longitude">Longitude:</label>
-    <input type="text" id="longitude" name="longitude"><br><br>
-    <button id="findClosest" onclick="findClosest()">Find Closest!</button>
+    <select id="inputOptions">
+        <option value="latitudeLongitudeInput">Latitude / Longitude</option>
+        <option value="eastingNorthingInput">Easting / Northing</option>
+        <option value="trackComparisonInput">Track Comparison</option>
+    </select>
+    <div class="input-box">
+        <div id="latitudeLongitudeInput" class="input-group">
+            <div class="input">
+                <label for="latitude">Latitude:</label>
+                <input type="text" id="latitude" name="latitude">
+            </div>
+            <div class="input">
+                <label for="longitude">Longitude:</label>
+                <input type="text" id="longitude" name="longitude">
+            </div>
+        </div>
+        <div id="eastingNorthingInput" class="input-group">
+            <div class="input">
+                <label for="easting">Easting:</label>
+                <input type="text" id="easting" name="easting">
+            </div>
+            <div class="input">
+                <label for="northing">Northing:</label>
+                <input type="text" id="northing" name="northing">
+            </div>
+        </div>
+        <div id="trackComparisonInput" class="input-group">
+            <div class="input">
+                <label for="elr">ELR:</label>
+                <input type="text" id="elr" name="elr">
+            </div>
+            <div class="input">
+                <label for="miles">Miles:</label>
+                <input type="text" id="miles" name="miles">
+            </div>
+        </div>
+    </div>
+    <div class="button-box">
+        <button id="findClosest" onclick="findClosest()">Find Closest</button>
+        <button id="myLocation" onclick="useMyLocation()">Use My Location</button>
+    </div>
 </div>
 
 <div class="information-block">
@@ -32,7 +68,7 @@
             <li>Yardage</li>
         </ul>
     </div>
-    <div id="closestMap" style="height: 400px; min-width: 400px;"></div>
+    <div id="closestMap"></div>
     <div id="returnBlock">
         <h1>Closest Track:</h1>
         <hr />
@@ -43,7 +79,7 @@
             <li>Latitude:</li>
             <li>Longitude:</li>
             <li>Track Type:</li>
-            <li>Easting / Northing: []</li>
+            <li>Easting / Northing:</li>
             <li>Distance from track:</li>
         </ul>
     </div>
